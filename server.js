@@ -4,6 +4,7 @@ var http = require('http');
 var app = express();
 var api = express();
 app.use(express.static(__dirname + "/../../../workspace-juno-jee/arsnova-vagrant/arsnova-mobile/src/main/webapp/build/production/ARSnova/"));
+app.use(express.static(__dirname + "/../../../Eclipse/workspace-juno-jee/arsnova-vagrant/arsnova-mobile/src/main/webapp/build/production/ARSnova/"));
 app.use('/api', api);
 
 var server = app.listen(3000);
@@ -20,18 +21,28 @@ api.post('/socket/assign', function(req, res) {
 
 io.on('connection', function(socket) {
 	console.log('a user connected');
-});
-
-io.on('setFeedback', function(socket) {
-	console.log('setFeedback', socket);
-});
-
-io.on('setSession', function(socket) {
-	console.log('setSession', socket);
+	var combo = 0;
+	socket.on('setFeedback', function(feedbackData) {
+		// feedbackData = { value: 0-3 };
+		var feedback = [];
+		switch (feedbackData.value) {
+			case 0: feedback = [1, 0, 0, 0]; break;
+			case 1: feedback = [0, 1, 0, 0]; break;
+			case 2: feedback = [0, 0, 1, 0]; break;
+			case 3: feedback = [0, 0, 0, 1]; break;
+			default: feedback = [0, 0, 0, 0]; break;
+		}
+		if (++combo >= 5) {
+			socket.emit('feedbackData', [10, 20, 2, 5]);
+			combo = 0;
+		} else {
+			socket.emit('feedbackData', feedback);
+		}
+	});
 });
 
 // -- AUTH --
-app.get('/auth/login', function(req, res) {
+api.get('/auth/login', function(req, res) {
 	res.send('Hello World');
 });
 
@@ -59,6 +70,11 @@ api.get('/session/:id/interposedreadingcount', function(req, res) {
 
 api.get('/session/:id/mylearningprogress', function(req, res) {
 	res.send('{"myprogress":0,"courseprogress":0}');
+});
+
+api.get('/session/:id/myfeedback', function(req, res) {
+	// Use mainly to hide 'feedback reset' messages
+	res.send('0');
 });
 
 // -- LECTURERQUESTION --
