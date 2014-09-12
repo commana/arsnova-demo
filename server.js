@@ -4,8 +4,10 @@ var http = require('http');
 var app = express();
 var api = express();
 app.use(express.static(__dirname + "/../../../workspace-juno-jee/arsnova-vagrant/arsnova-mobile/src/main/webapp/build/production/ARSnova/"));
-app.use('/presenter', express.static(__dirname + "/../../../workspace-juno-jee/arsnova-vagrant/arsnova-presenter/target/arsnova-presenter-1.1.0-SNAPSHOT/"));
+app.use(express.static(__dirname + "/../../../eclipse-juno-jee-workspace/arsnova-vagrant/arsnova-mobile/src/main/webapp/build/production/ARSnova/"))
 app.use(express.static(__dirname + "/../../../Eclipse/workspace-juno-jee/arsnova-vagrant/arsnova-mobile/src/main/webapp/build/production/ARSnova/"));
+app.use('/presenter', express.static(__dirname + "/../../../workspace-juno-jee/arsnova-vagrant/arsnova-presenter/target/arsnova-presenter-1.1.0-SNAPSHOT/"));
+app.use('/presenter', express.static(__dirname + "/../../../eclipse-juno-jee-workspace/arsnova-vagrant/arsnova-presenter/target/arsnova-presenter-1.2.0-SNAPSHOT/"))
 app.use('/api', api);
 
 var server = app.listen(3000);
