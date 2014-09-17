@@ -1,13 +1,11 @@
 var express = require('express');
 var http = require('http');
+var _ = require('underscore');
 
 var app = express();
 var api = express();
-app.use(express.static(__dirname + "/../../../workspace-juno-jee/arsnova-vagrant/arsnova-mobile/src/main/webapp/build/production/ARSnova/"));
-app.use(express.static(__dirname + "/../../../eclipse-juno-jee-workspace/arsnova-vagrant/arsnova-mobile/src/main/webapp/build/production/ARSnova/"))
-app.use(express.static(__dirname + "/../../../Eclipse/workspace-juno-jee/arsnova-vagrant/arsnova-mobile/src/main/webapp/build/production/ARSnova/"));
-app.use('/presenter', express.static(__dirname + "/../../../workspace-juno-jee/arsnova-vagrant/arsnova-presenter/target/arsnova-presenter-1.1.0-SNAPSHOT/"));
-app.use('/presenter', express.static(__dirname + "/../../../eclipse-juno-jee-workspace/arsnova-vagrant/arsnova-presenter/target/arsnova-presenter-1.2.0-SNAPSHOT/"))
+app.use(express.static(__dirname + "/static/arsnova-mobile"));
+app.use('/presenter', express.static(__dirname + "/static/arsnova-presenter"));
 app.use('/api', api);
 
 var server = app.listen(3000);
@@ -44,9 +42,14 @@ io.on('connection', function(socket) {
 			case 3: feedback = [0, 0, 0, 1]; break;
 			default: feedback = [0, 0, 0, 0]; break;
 		}
-		if (++combo >= 5) {
-			feedback = [10, 20, 2, 5];
-			combo = 0;
+		combo = combo + 1;
+		if (combo === 5) {
+			// red feedback
+			feedback = [2, 5, 15, 6];
+		} else if (combo === 6) {
+				// green feedback
+				feedback = [10, 20, 2, 5];
+				combo = 0;
 		}
 		//sum = feedback.reduce(function(a, b) { return a + b; });
 		//feedbackAverage = Math.round(sum / feedback.length)-1;
@@ -103,8 +106,28 @@ api.get('/session/:id/myfeedback', function(req, res) {
 // -- LECTURERQUESTION --
 api.get('/lecturerquestion/:id/answer/', function(req, res) {
 	if (req.query.piround == '1') {
+		if (req.params.id === 'c8a47823a62e397b39f630a2c7cab7d7') {
+			var result = answers(req.params.id, {
+				"1,0,0,0,1": 23,
+				"0,1,0,1,0": 15,
+				"0,0,1,0,0": 5,
+				"Abstentions": 12
+			});
+			res.json(result);
+			return;
+		}
 		res.send('[{"_id":null,"_rev":null,"type":"skill_question_answer","sessionId":null,"questionId":"91f7ec963d4b64776d60f65ae002a018","answerText":"trifft eher zu","answerSubject":null,"questionVariant":null,"questionValue":0,"piRound":1,"user":null,"timestamp":0,"answerCount":4,"abstention":false,"abstentionCount":0},{"_id":null,"_rev":null,"type":"skill_question_answer","sessionId":null,"questionId":"91f7ec963d4b64776d60f65ae002a018","answerText":"trifft eher zu","answerSubject":null,"questionVariant":null,"questionValue":0,"piRound":1,"user":null,"timestamp":0,"answerCount":11,"abstention":false,"abstentionCount":0}]');
 	} else if (req.query.piround == '2') {
+		if (req.params.id === 'c8a47823a62e397b39f630a2c7cab7d7') {
+			var result = answers(req.params.id, {
+				"1,0,0,0,1": 33,
+				"0,1,0,1,0": 5,
+				"0,0,1,0,0": 3,
+				"Abstentions": 4
+			});
+			res.json(result);
+			return;
+		}
 		res.send('[{"_id":null,"_rev":null,"type":"skill_question_answer","sessionId":null,"questionId":"91f7ec963d4b64776d60f65ae002a018","answerText":"trifft voll zu","answerSubject":null,"questionVariant":null,"questionValue":0,"piRound":1,"user":null,"timestamp":0,"answerCount":4,"abstention":false,"abstentionCount":0},{"_id":null,"_rev":null,"type":"skill_question_answer","sessionId":null,"questionId":"91f7ec963d4b64776d60f65ae002a018","answerText":"trifft voll zu","answerSubject":null,"questionVariant":null,"questionValue":0,"piRound":1,"user":null,"timestamp":0,"answerCount":11,"abstention":false,"abstentionCount":0}]');
 	} else {
 		res.send('[]');
@@ -129,7 +152,7 @@ api.get('/lecturerquestion/answercount', function(req, res) {
 
 api.get('/lecturerquestion/', function(req, res) {
 	if (req.query.sessionkey) {
-		res.send('[{"type":"skill_question","questionType":"vote","questionVariant":"lecture","subject":"DWX2013","text":"Das Essen ist lecker...","active":true,"releasedFor":"all","possibleAnswers":[{"id":"","text":"trifft voll zu","correct":false,"value":0},{"id":"","text":"trifft eher zu","correct":false,"value":0},{"id":"","text":"weiß nicht","correct":false,"value":0},{"id":"","text":"trifft eher nicht zu","correct":false,"value":0},{"id":"","text":"trifft nicht zu","correct":false,"value":0}],"noCorrect":false,"sessionId":"ed66e7b4088a49b2da5eb062860392a6","sessionKeyword":"71073692","timestamp":0,"number":0,"duration":0,"piRound":1,"showStatistic":true,"showAnswer":false,"abstention":false,"_id":"91f7ec963d4b64776d60f65ae002a018","_rev":"6-bd820cc441c137e9877812f00f03aa96","image":null,"gridSize":0,"offsetX":0,"offsetY":0,"zoomLvl":0,"gridOffsetX":0,"gridOffsetY":0,"gridZoomLvl":0,"gridSizeX":0,"gridSizeY":0,"gridIsHidden":false,"imgRotation":0,"toggleFieldsLeft":false,"numClickableFields":0,"thresholdCorrectAnswers":0,"cvIsColored":false,"session":"ed66e7b4088a49b2da5eb062860392a6"},{"type":"skill_question","questionType":"mc","questionVariant":"lecture","subject":"DWX2013","text":"Ich bin an folgenden Tagen auf der Konferenz...","active":true,"releasedFor":"all","possibleAnswers":[{"id":"","text":"Montag","correct":false,"value":0},{"id":"","text":"Dienstag","correct":false,"value":0},{"id":"","text":"Mittwoch","correct":false,"value":0},{"id":"","text":"Donnerstag","correct":false,"value":0}],"noCorrect":true,"sessionId":"ed66e7b4088a49b2da5eb062860392a6","sessionKeyword":"71073692","timestamp":0,"number":0,"duration":0,"piRound":1,"showStatistic":true,"showAnswer":false,"abstention":false,"_id":"91f7ec963d4b64776d60f65ae002ae2b","_rev":"2-80946c5e360e00426a860155b8cc36ec","image":null,"gridSize":0,"offsetX":0,"offsetY":0,"zoomLvl":0,"gridOffsetX":0,"gridOffsetY":0,"gridZoomLvl":0,"gridSizeX":0,"gridSizeY":0,"gridIsHidden":false,"imgRotation":0,"toggleFieldsLeft":false,"numClickableFields":0,"thresholdCorrectAnswers":0,"cvIsColored":false,"session":"ed66e7b4088a49b2da5eb062860392a6"}]');
+		res.send('[{"type":"skill_question","questionType":"mc","questionVariant":"lecture","subject":"A. Peer Instruction (PI): Examples of Good Conceptual Questions","text":"A1. A standard deck of cards contains \\\\(n\\\\) cards divided into 4 suits \u2660, \\n\u2665, \u2666, \u2663 (\\\\(4 \\\\mid n\\\\)). \\n\\nLet \\\\(n = 4 \\\\cdot 13 = 52\\\\). Consider the probability of drawing a full house, i. e., three of a kind and a pair. \\n\\nThis is a...","active":true,"releasedFor":"all","possibleAnswers":[{"id":"","text":"combination","correct":true,"value":10},{"id":"","text":"variation","correct":false,"value":-10},{"id":"","text":"permutation","correct":false,"value":-10},{"id":"","text":"w/ repetition","correct":false,"value":-10},{"id":"","text":"w/o repetition","correct":true,"value":10}],"noCorrect":false,"sessionId":"ed66e7b4088a49b2da5eb062860392a6","sessionKeyword":"71073692","timestamp":0,"number":0,"duration":0,"piRound":1,"showStatistic":true,"showAnswer":true,"abstention":true,"_id":"c8a47823a62e397b39f630a2c7cab7d7","_rev":"6-fef25a3823bd09a6100003c2680a36d0","image":null,"gridSize":0,"offsetX":0,"offsetY":0,"zoomLvl":0,"gridOffsetX":0,"gridOffsetY":0,"gridZoomLvl":0,"gridSizeX":0,"gridSizeY":0,"gridIsHidden":false,"imgRotation":0,"toggleFieldsLeft":false,"numClickableFields":0,"thresholdCorrectAnswers":0,"cvIsColored":false,"session":"ed66e7b4088a49b2da5eb062860392a6"},{"type":"skill_question","questionType":"abcd","questionVariant":"lecture","subject":"B. Using TeX Formulae and Markdown Formatting","text":"B1. Electromagnetism: \\n\\nWhat is this equation called?\\n\\n\\\\(\\\\oint_{\\\\partial \\\\Sigma} \\\\mathbf{E} \\\\cdot \\\\mathrm{d}\\\\boldsymbol{\\\\ell}  = - \\\\frac{d}{dt} \\\\iint_{\\\\Sigma} \\\\mathbf{B} \\\\cdot \\\\mathrm{d}\\\\mathbf{S}\\\\)","active":true,"releasedFor":"all","possibleAnswers":[{"id":"A","text":"A: Ampère\'s circuital law","correct":false,"value":-10},{"id":"B","text":"B: Maxwell-Faraday equation","correct":true,"value":10},{"id":"C","text":"C: Gauss\'s law for magnetism","correct":false,"value":-10}],"noCorrect":false,"sessionId":"ed66e7b4088a49b2da5eb062860392a6","sessionKeyword":"71073692","timestamp":0,"number":0,"duration":0,"piRound":1,"showStatistic":true,"showAnswer":true,"abstention":true,"_id":"c8a47823a62e397b39f630a2c7bf69eb","_rev":"7-9f88f2b73ae317ce5bb4434627ea7314","image":null,"gridSize":0,"offsetX":0,"offsetY":0,"zoomLvl":0,"gridOffsetX":0,"gridOffsetY":0,"gridZoomLvl":0,"gridSizeX":0,"gridSizeY":0,"gridIsHidden":false,"imgRotation":0,"toggleFieldsLeft":false,"numClickableFields":0,"thresholdCorrectAnswers":0,"cvIsColored":false,"session":"ed66e7b4088a49b2da5eb062860392a6"}]');
 	} else {
 		res.send('');
 	}
@@ -158,3 +181,41 @@ app.get('/arsnova-config', function(req, res) {
 api.get('/whoami.json', function(req, res) {
 	res.send('{"username":"cthl58","type":"guest","role":null}');
 });
+
+
+// -- HELPERS --
+function answers(id, params) {
+	var template = {
+		"_id":null,
+		"_rev":null,
+		"type":"skill_question_answer",
+		"sessionId":null,
+		"questionId":id,
+		"answerText":"",
+		"answerSubject":null,
+		"questionVariant":null,
+		"questionValue":0,
+		"piRound":1,
+		"user":null,
+		"timestamp":0,
+		"answerCount":0,
+		"abstention":false,
+		"abstentionCount":0
+	};
+	var list = [];
+	var r;
+	for (var key in params) {
+		r = _.clone(template);
+		r.answerText = key;
+		r.answerCount = params[key];
+		r.piRound = params["piRound"] || 1;
+		if (key === "Abstentions") {
+			r.abstention = true;
+			r.abstentionCount = params[key];
+			r.answerCount = 0;
+			r.answerText = "";
+		}
+		list.push(r);
+	}
+	return list;
+};
